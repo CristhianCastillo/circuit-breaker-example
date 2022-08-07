@@ -1,0 +1,44 @@
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+resilience4j:
+  circuitbreaker:
+    configs:
+      shared:
+        register-health-indicator: true # Check status of running app.
+        eventConsumerBufferSize: 10 # CircuitBreaker, Retry, RateLimiter, Bulkhead and TimeLimiter events are stored in a separate circular event consumer buffers
+        failure-rate-threshold: 50 # If x % of request fail, then change circuit status to "Open"
+        automatic-transition-from-open-to-half-open-enabled: true # Set circuit status from "Open" to "Half-Open"
+        wait-duration-in-open-state: 10s # Time to circuit "Open" status.
+        permitted-number-of-calls-in-half-open-state: 1 # Number of Calls in "Half-Open" status
+        minimumNumberOfCalls: 2 # Configures the minimum number of calls which are required (per sliding window period) before the CircuitBreaker can calculate the error rate or slow call rate.
+        sliding-window-size: 5 # Configura el tamaño de la ventana deslizante que se utiliza para registrar el resultado de las llamadas cuando el CircuitBreaker está cerrado.
+        sliding-window-type: count_based # Could be TIME_BASED, COUNT_BASED.
+        slow-call-duration-threshold: 2s # Configures the duration threshold above which calls are considered as slow and increase the rate of slow calls.
+        slow-call-rate-threshold: 40 # Configures a threshold in percentage. The CircuitBreaker considers a call as slow when the call duration is greater than slowCallDurationThreshold
+        max-wait-duration-in-half-open-state: 10s # Configures a maximum wait duration which controls the longest amount of time a CircuitBreaker could stay in Half Open state, before it switches to open.
+        writable-stack-trace-enabled: true # Habilita seguimientos de pila grabables. Cuando se establece en falso, Exception.getStackTrace devuelve una matriz de longitud cero. Esto se puede usar para reducir el spam de registros cuando el disyuntor está abierto, ya que la causa de las excepciones ya se conoce (el disyuntor está provocando un cortocircuito en las llamadas).
+    instances:
+      example:
+        base-config: shared
+  timelimiter:
+    configs:
+      shared:
+        timeout-duration: 2s
+        cancel-running-future: true
+    instances:
+      example:
+        base-config: shared
+  retry:
+    instances:
+      example:
+        maxRetryAttempts: 5
+        waitDuration: 10s
